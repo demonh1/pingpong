@@ -1,0 +1,145 @@
+#include "common.h"
+
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <cstdlib>
+#include <ctime>
+#include <cmath>
+
+
+
+
+template <typename T>
+std::string toString(const T& t) {
+	std::ostringstream os;
+	os << t;
+	return os.str();
+}
+
+std::string IntToString (int i)
+ {
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%i", i);
+    return std::string(buf);
+ } 
+
+//
+ 
+
+//============================================
+//	Init
+//============================================
+bool Init(int w, int h, int pal, int fullScreen) {
+	if (SDL_Init(SDL_INIT_VIDEO)!= 0) {
+		std::cerr << "Unable to initialize SDL:\n " << SDL_GetError() << std::endl;
+		return false;
+	}
+		if (SDL_Init(SDL_INIT_VIDEO) == 0) {
+			SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,1);
+			if (fullScreen == 0) { surface = SDL_SetVideoMode(w,h,pal,SDL_OPENGL|SDL_RESIZABLE); }
+			else surface = SDL_SetVideoMode(w,h, pal,SDL_OPENGL|SDL_FULLSCREEN|SDL_RESIZABLE);
+			return true;
+		}
+		if(!surface) { 
+			std::cerr << "Unable to initialize SDL:\n " << SDL_GetError() << std::endl;
+            return false;
+return true;		}
+}
+
+//============================================================
+//	void ResizeWindow
+//	=========================================================
+void ResizeWindow(int w, int h) { 
+	
+	if ( h == 0) h = 1;
+
+	GLfloat ratio = (GLfloat)w/(GLfloat)h;
+	glViewport(0,0,w,h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(45.0,ratio, 0.1,10.0);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+}
+//===================================
+//	Mode2d
+//==================================
+void Mode2d (int w, int h) {
+
+	glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0, w, h, 0, -1.0, 1.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+}
+
+bool LoadTexture (std::string fileName, GLuint& tex) {
+	SDL_Surface* tmp = NULL;
+	GLint maxTexSize;
+	GLuint glFormat = GL_RGBA; //use alpha chanal
+
+  //jpg -- no  alpha chanal
+  if(fileName.substr(fileName.length()-3,3).compare("jpg") == 0) glFormat = GL_RGB;
+  tmp = IMG_Load(fileName.c_str());
+
+  if (tmp == NULL) 
+  {
+	  std::cout << "Error textures manager: " << fileName << " : "<< SDL_GetError() << std::endl;
+	  SDL_FreeSurface(tmp);
+	  return false;
+  }
+
+  glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
+  if(tmp->w > maxTexSize)
+   {
+    std::cout << "Error textures manager: " << fileName << " texture is big size." << std::endl;
+    SDL_FreeSurface(tmp);
+    return false;
+   }
+  // generate textures
+  glGenTextures(1, &tex);
+  glBindTexture(GL_TEXTURE_2D, tex);
+
+  //transmit image from tmp texture tex
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP );
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP );
+  glTexImage2D(GL_TEXTURE_2D, 0, glFormat, tmp->w, tmp->h, 0, glFormat, GL_UNSIGNED_BYTE, tmp->pixels);
+
+  SDL_FreeSurface(tmp);
+  
+return true;
+}
+
+bool LoadTexNearest (const std::string& fileName, GLuint& tex) {
+	SDL_Surface* tmp = NULL;
+	GLint maxTexSize;
+	GLuint glFormat = GL_RGBA; //use alpha chanal
+
+  //jpg -- no  alpha chanal
+  if(fileName.substr(fileName.length()-3,3).compare("jpg") == 0) glFormat = GL_RGB;
+  tmp = IMG_Load(fileName.data());
+
+  if (tmp == NULL) 
+  {
+	  std::cout << "Error textures manager: " << fileName << " : "<< SDL_GetError() << std::endl;
+	  SDL_FreeSurface(tmp);
+	  return false;
+  }
+
+  glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
+  if(tmp->w > maxTexSize)
+   {
+    std::cout << "Error textures manager: " << fileName << " texture is big size." << std::endl;
+    SDL_FreeSurface(tmp);
+    return false;
+   }
+  // generate textures
+  glGenTextures(1, &tex);
+  glBindTexture(GL_TEXTURE_2D, tex);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); //GL_NEAREST (

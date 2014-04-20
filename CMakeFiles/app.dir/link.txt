@@ -1,0 +1,1 @@
+/usr/bin/c++    -std=c++0x -Wall    CMakeFiles/app.dir/play.cpp.o CMakeFiles/app.dir/ball.cpp.o CMakeFiles/app.dir/main.cpp.o  -o app -rdynamic -lGLU -lGL -lSM -lICE -lX11 -lXext -Wl,-Bstatic -lSDLmain -Wl,-Bdynamic -lSDL -lpthread -lSDL_image -lSDL_ttf 
